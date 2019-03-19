@@ -51,5 +51,48 @@ class ListTest extends Specification {
 }
 ```
 
+## 주요 기능
+### Fixture methods
+* 테스트 환경을 셋업하고 정리하는데 책임이 있는 메소드들이다.
+* 실행 순서에 따라 다음 네 가지 메소드들이 있다.
+```groovy
+def setupSpec() {} // 한번만 수행 - 첫 feature method 가 수행되기 전에
+def setup() {} // 여러번 수행 - 각 feature method 들이 수행되기 전에
+def cleanup() {} // 여러번 수행 - 각 feature method 들이 수행된 후에
+def cleanupSpec() {} // 한번만 수행 - 마지막 feature method 가 수행된 후에
+```
+
+### Feature methods
+* 실제로 테스트하고자 하는 내용이 들어가는 메소드이다.
+* 네이밍 컨벤션은 string literal 로 작성하는 것이다.
+```groovy
+def "add one element to the list"() {
+    // block 작성
+}
+```
+
+### Blocks
+* spock 이 제공하는 block 은 feature method 를 구성하는 개념적인 단계를 쉽게 작성할 수 있도록 해준다.
+* 아래 여섯 가지의 블록이 제공된다. 
+    * given
+        * setup 코드가 들어간다.
+        * optional
+    * when 
+        * stimulus
+        * then 과 한 쌍으로, 테스트 할 함수를 호출하거나 하는 테스트 대상 코드가 들어가는 블록이다
+    * then
+        * response
+        * when 과 한 쌍으로, when 블록을 실행시키고 나서 기대되는 결과를 확인하는 블록이다
+    * expect
+        * then 과 비슷하긴 하지만 condition 과 variable 정의만 담을 수 있다는 점에서 더 제한적인 블록이다.
+        * 기대되는 결과가 하나의 expression 만으로 표현될 때 유용하다.
+    * cleanup
+        * 테스트시 사용한 리소스를 정리하는 블록이다
+    * where
+        * 항상 feature method 의 마지막에 위치한다
+        * 그렇지만 feature method 가 실행되기 전에 평가된다
+        * data-driven feature method 를 작성할 때 유용하게 쓰인다
+
+
 ## Spring 프로젝트에서 사용하기
 * TODO
