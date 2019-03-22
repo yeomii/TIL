@@ -113,4 +113,67 @@ const React = require('react');
 ---
 
 ## 02 Building Content with JSX
-* TODO
+
+### JSX 란?
+* jsx 는 html 로 보이지만 브라우저가 이해할 수 있는 언어가 아니다.
+* jsx 는 유저 브라우저에서 직접 해석되지 않고 babel 을 통해 ES5 js 로 변환된다.
+* [babel 웹페이지](https://babeljs.io/repl) 에서 어떻게 변환되는지 확인할 수 있다.
+    * react 코드
+    ```jsx
+    const App = () => {
+        return <div>Hi there!</div>;
+    }
+    ```
+    * ES5 로 변환된 js 코드
+    ```js
+    var App = function App() {
+    return React.createElement("div", null, "Hi there!");
+    };
+    ```
+
+### JSX vs HTML
+* element 에 style 을 적용할 때 다른 문법을 사용해야 한다
+    * HTML
+    ```html
+    <div style="background-color: red;"></div>
+    ```
+    * JSX
+    ```jsx
+    // 바깥 {} 괄호는 js 변수를 참조한다는 표현이고, 안쪽 {} 괄호는 js object 를 표현한다.
+    <div style={{backgroundColor: 'red'}}></div>
+    ```
+* element 에 class 를 추가할 떄 다른 문법을 사용해야 한다
+    * HTML
+    ```html
+    <div class="root"></div>
+    ```
+    * JSX
+    ```jsx
+    // class (element attribute) 대신 className 을 사용해야 한다
+    // class 는 es2015 부터 js 키워드로 사용되기 때문
+    <div className="root"></div>
+    ```
+* JSX 는 js 변수 또는 함수를 참조할 수 있다
+    * HTML
+    ```html
+    <label>hello</label>
+    ```
+    * JSX
+    ```jsx
+    // class (element attribute) 대신 className 을 사용해야 한다
+    // class 는 es2015 부터 js 키워드로 사용되기 때문```
+    const text = 'hello';
+    <label>{text}</label>
+    ```
+    * string 이 와야하는 곳에는 js object 를 참조할 수 없다
+
+    ---
+
+    ## 03 Props
+
+    * Component 를 작성할 때 신경써야 할 것
+        * Nesting
+        * Reusability
+        * Configuration
+
+    
