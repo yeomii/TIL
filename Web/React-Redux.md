@@ -167,13 +167,159 @@ const React = require('react');
     ```
     * string 이 와야하는 곳에는 js object 를 참조할 수 없다
 
-    ---
+---
 
-    ## 03 Props
+## 03 Props
 
-    * Component 를 작성할 때 신경써야 할 것
-        * Nesting
-        * Reusability
-        * Configuration
+* Component 를 작성할 때 신경써야 할 것
+    * Nesting
+    * Reusability
+    * Configuration
 
-    
+### semantic-ui
+* 오픈소스 css framework
+* 자세한 설명은 TODO
+
+* 간단히 시작하기
+```html
+<html>
+    <head>
+        ...
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" />
+    </head>
+    ...
+</head>
+```
+
+### faker.js
+* 테스트용으로 필요한 가짜 데이터를 자동으로 생성해주는 오픈소스 js 라이브러리
+
+* 간단히 시작하기
+```sh
+# react 프로젝트에 faker 라이브러리 설치
+$ npm install --save faker
+```
+```jsx
+import faker from 'faker';
+...
+const App = () => { return <img alt="avatar" src={} />; }
+...
+```
+
+### Reusable, Configurable 한 컴포넌트 만들기
+* 중복되는 JSX 코드를 찾는다
+* 해당 JSX 블럭의 목적에 맞게 이름을 짓는다
+* 새로운 컴포넌트가 들어갈 새로운 파일을 만든다. 이 때 파일이름은 컴포넌트와 동일해야 한다.
+* 새로 만든 파일에 컴포넌트를 새로 만들고 JSX 코드를 옮긴다
+* react 의 props 시스템을 사용해서 컴포넌트를 configurable 하게 만든다.
+
+* 예제
+    * before
+    ```js
+    // index.js
+    import React from 'react';
+    import ReactDOM from 'react-dom';
+    import faker from 'faker';
+
+    const App = () => {
+        return (
+            <div className="ui container comments">
+                <div className="comment">
+                    <a href="/" className="avatar">
+                        <img alt="avatar" src={faker.image.avatar()} />
+                    </a>
+                    <div className="content">
+                        <a href="/" className="author">
+                            Sam
+                        </a>
+                        <div className="metadata">
+                            <span className="date">Today at 06:00PM</span>
+                        </div>
+                        <div className="text">Nice!</div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    ReactDOM.render(<App />, document.querySelector('#root'));
+    ```
+
+    * after
+    ```jsx
+    // @index.js
+    import React from 'react';
+    import ReactDOM from 'react-dom';
+    import faker from 'faker';
+    import CommentDetail from './CommentDetail';
+
+    const FakeCommentDetail = () => {
+        return <CommentDetail 
+            author={faker.name.firstName()} 
+            dttm={faker.date.recent().toString()}
+            avatar={faker.image.avatar()}
+            comment={faker.lorem.sentence()}
+        />
+    };
+
+    const App = () => {
+        return (
+            <div className="ui container comments">
+                <FakeCommentDetail />
+                <FakeCommentDetail />
+            </div>
+        );
+    };
+
+    ReactDOM.render(<App />, document.querySelector('#root'));
+
+    // @CommentDetail.js
+    import React from 'react';
+
+    const CommentDetail = props => {
+        return (
+            <div className="comment">
+                <a href="/" className="avatar">
+                    <img alt="avatar" src={props.avatar} />
+                </a>
+                <div className="content">
+                    <a href="/" className="author"> {props.author} </a>
+                    <div className="metadata">
+                        <span className="date">{props.dttm}</span>
+                    </div>
+                    <div className="text">{props.comment}</div>
+                </div>
+            </div>
+        );
+    }
+
+    export default CommentDetail;
+    ```
+
+### props
+* 부모 컴포넌트에서 자식 컴포넌트로 데이터를 넘기기 위한 시스템
+* 자식 컴포넌트를 설정하거나 커스텀하기 위한 목적으로 사용
+
+* 부모 컴포넌트에서 자식 컴포넌트로 데이터를 넘기려면 jsx 태그에 attribute 로 달아주면 된다
+* 자식 컴포넌트에서 데이터를 참조하려면 props 를 인자로 받아서 부모 컴포넌트에서 넣어준대로 키밸류로 참조할 수 있다.
+* props 로 데이터를 전달하는 방법
+    * 부모 컴포넌트에서 jsx 태그의 attribute 로 데이터를 넘기는 방법 ( props.{keyName} )
+    ```jsx
+        // 부모 컴포넌트
+        <Comment comment="Nice!" />
+        // 자식 컴포넌트
+        const Comment = props => { return <div> {props.author} </div> };
+    ```
+    * 부모 컴포넌트의 jsx 태그 내용에 자식 컴포넌트의 jsx 태그를 쓰는 방법 ( props.children )
+    ```jsx
+        // 부모 컴포넌트
+        <Card>
+            <Comment/>
+        </Card>
+        // 자식 컴포넌트 
+        const Card = props => { return <div> {props.children} </div>}
+    ```
+
+---
+
+
