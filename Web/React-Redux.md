@@ -322,4 +322,85 @@ const App = () => { return <img alt="avatar" src={} />; }
 
 ---
 
+## 04 Structuring Apps with Class-Based Components
 
+### 클래스 기반 Component
+* 이전까지 베웠던 function 기반 Component 는 html 을 표현할 수 있었지만 유저와의 상호작용은 처리하지 못했다
+* Functional Component
+    * 로직이 없는 단순한 컨텐츠를 보여주기에 적합
+* Class Component
+    * 나머지 모든 경우에 적합
+    * 보통은 읽기 편한 코드를 작성할 수 있음
+    * state 를 사용할 수 있음 -> 사용자 입력을 다루기 편함
+    * lifecycle event 를 알고 있음 -> 앱이 시작할 때 해야할 작업을 정의하기 편함
+
+### Geolocation API 사용하기
+* https://developer.mozilla.org/ko/docs/WebAPI/Using_geolocation
+* 유저의 현재 위치 가져오기
+```js
+window.navigator.geolocation.getCurrentPosition(
+    (position) => console.log(position), // onSuccess
+    (e) => console.log(e)  // onFailure
+);
+```
+
+### Functional Component 를 사용하면 어려운점
+* Geolocation API 를 호출해서 사용자 위치를 표시하는 앱을 생각해보면 아래와 같은 순서대로 타임라인이 구성된다.
+    * 브라우저에 의해 js file 들이 로딩된다.
+    * App component 들이 생성된다.
+    * Geolocation API 를 호출해서 데이터를 요청한다.
+    * App 이 jsx 를 리턴하고, jsx 가 브라우저에서 렌더링된다.
+    * 요청한 데이터가 도착한다.
+* 페이지 렌더링이 다 끝난 후 요청한 데이터가 도착하기 때문에 사용자 위치를 나중에 표시해주기가 어렵다.
+
+### Class Component 규칙
+* js class (since es2015) 여야 한다
+* React.Component 의 자식클래스여야 한다.
+* 표현할 jsx 를 반환하는 render 함수를 정의해야 한다.
+
+
+---
+
+## 05 State in React Component
+
+### State 규칙
+* class component 에서만 사용할수 있다.
+* props 와 state 는 혼동하기 쉬운 개념이므로 주의하자.
+* `state` 는 특정 component 에 관련된 데이터를 담고있는 js object 이다.
+* state 를 업데이트하면 거의 대부분은 `render` 함수를 통해서 컴포넌트를 다시 렌더링하게 된다.
+* state 는 컴포넌트가 생성될 때 초기화되어야 한다.
+* state 는 `setState` 함수를 통해서만 업데이트 되어야 한다.
+
+### Class Component + state 예제
+```jsx
+import React from 'react';
+import ReactDOM from 'react-dom';
+
+class App extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { lat: null, long: null, errorMessage: ''};
+
+        window.navigator.geolocation.getCurrentPosition(
+            (position) => { this.setState({ lat: position.coords.latitude, long: position.coords.longitude }); },
+            (e) => { this.setState({errorMessage: e.message}); }
+        );
+    }
+
+    render() {
+        if (this.state.errorMessage && !this.state.lat) {
+            return <div>Error: {this.state.errorMessage}</div>;
+        }
+
+        if (!this.state.errorMessage && this.state.lat) {
+            return <div>Latitude: {this.state.lat}, Latitude: {this.state.long}</div>;
+        }
+
+        return <div>Loading...</div>;
+    }
+}
+
+ReactDOM.render(<App />, document.querySelector('#root'));
+```
+
+## 06 Understanding Lifecycle Methods
