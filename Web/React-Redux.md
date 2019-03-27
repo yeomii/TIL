@@ -403,4 +403,6 @@ class App extends React.Component {
 ReactDOM.render(<App />, document.querySelector('#root'));
 ```
 
+---
+
 ## 06 Understanding Lifecycle Methods
