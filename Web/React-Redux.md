@@ -406,3 +406,65 @@ ReactDOM.render(<App />, document.querySelector('#root'));
 ---
 
 ## 06 Understanding Lifecycle Methods
+
+### component lifecycle methods
+* class 기반 component 에서 정의할 수 있는 함수로, 이 함수를 구현할 경우 해당 component 의 lifecycle 의 특정 시점에 react 에 의해 자동으로 호출된다.
+
+#### 함수 호출 순서
+* constructor
+* render 
+    * 스크린에 내용이 보이기 시작함
+* componentDidMount
+    * 특정 위치에 계속 존재, update 를 기다림 (setState 로 업데이트)
+* componentDidUpdate
+    * 특정 위치에 계속 존재, 더이상 보이지 않는 상태가 될 때까지 기다림
+* componentWillUnmount
+
+#### best practice
+* constructor
+    * 딱 한번 해야하는 초기화 작업 정의
+* render
+    * jsx 반환 외에는 다른 작업을 하지 않는 것을 권장
+* componentDidMount
+    * 데이터 로딩 정의에 적합
+* componentDidUpdate
+    * state / props 가 바뀌었을때 해주어야할 데이터 로딩 정의에 적합
+* componentWillUnmount
+    * cleanup 시 해주어야 할 작업 정의
+* 위 함수 외에도 여러 lifecycle method 가 존재
+
+### constructor 외에 다른 방법으로 state 초기화 하기
+* constructor 사용
+```jsx
+class App extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { lat: null, long: null, errorMessage: ''};
+    }
+    ...
+}
+```
+
+* class 본문에 초기화 내용 정의 (babel 이 자동으로 변환해준다)
+```jsx
+class App extends React.Component {    
+    state = { lat: null, long: null, errorMessage: '' };
+    ...
+}
+```
+
+### props 기본값 정의
+* `||` 연산자 사용
+```jsx
+const Spinner = (props) => {
+    return <div>{props.message || 'loading...'} </div>;
+}
+```
+* 또는 defaultProps 사용
+```jsx
+const Spinner = (props) => return <div>{props.message} </div>;
+
+Spinner.defaultProps = {
+    message: 'loading...'
+};
+```
