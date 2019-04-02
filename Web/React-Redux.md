@@ -468,3 +468,299 @@ Spinner.defaultProps = {
     message: 'loading...'
 };
 ```
+
+---
+
+## 07 Handling User Input with Forms and Events
+
+### input 태그로 사용자 입력 받기
+* onChange 콜백 등록
+```jsx
+class SearchBar extends React.Component {
+
+    onInputChange(event) {
+        console.log(event.target.value);
+        // do something with the input event...
+    }
+
+    render() {
+        return (
+            <form action="">
+                <input type="text" onChange={this.onInputChange}/>
+            </form>
+        );
+    }
+}
+```
+
+### Controlled vs Uncontrolled Component
+* HTML element 가 유저 입력과 같은 변하는 데이터를 들고 있는지 여부가 중요
+    * component 의 state 내에 데이터를 들고 있으면 Controlled Component 라 하고,
+    * DOM 내 HTML element 의 attribute 내에 데이터를 들고있으면 Uncontrolled Component 이다.
+
+### Controlled Component 로 만들기
+* 사용자 입력 데이터는 항상 SearchBar 컴포넌트 내의 state.term 에 저장된다.
+```jsx
+class SearchBar extends React.Component {
+    state = { term : '' };
+
+    render() {
+        return (
+            <form>
+                <input type="text" value={this.state.term} onChange={(e) => this.setState({term : e.target.value})}/>
+            </form>
+        );
+    }
+}
+```
+
+### 입력 폼의 기본 동작 덮어쓰기
+* onSubmit 이벤트 핸들러에서 event.preventDefault 함수 호출
+```jsx
+class SearchBar extends React.Component {
+    onFormSubmit(event) {
+        event.preventDefault();
+    }
+
+    render() {
+        return (
+            <form onSubmit={this.onFormSubmit}  action="">
+                <input type="text" />
+            </form>
+        );
+    }
+}
+```
+
+### js 의 this 이해하기
+* 아래 코드에서 onSubmit 핸들러가 호출되면 `console.log` 부분에서 에러가 발생한다.
+
+```jsx
+class SearchBar extends React.Component {
+    onFormSubmit(event) {
+        event.preventDefault();
+        console.log(this.state);
+    }
+
+    render() {
+        return (
+            <form onSubmit={this.onFormSubmit}  action="">
+                <input type="text" />
+            </form>
+        );
+    }
+}
+```
+* 결론 먼저 정리하면 `this` 가 `SearchBar` 클래스의 인스턴스가 아닌 `undefined` 이기 때문이다.
+
+
+* 함수 내에서 this 가 실제로 가리키는 값은 함수가 어디에 정의됐느냐에 결정되기 보다 어디에서 호출됐는지에 따라 결정된다.
+* 아래 예제를 살펴보면 car.drive 와 truck.driveTruck, driveNone 은 Car 클래스에 정의된 drive 함수를 가리킨다.
+* 떄문에 반환하는 값이 `'car'` 로 같을 것으로 예상할 수 있지만 `truck.driveTruck` 의 값은 `'truck'` 이 된다.
+* `driveNone` 은 위 예제와 같이 에러가 발생한다.
+```js
+class Car {
+	setDriveSound(sound) {
+    this.sound = sound;
+  }
+  drive() {
+    return this.sound;
+  }
+}
+const car = new Car();
+car.setDriveSound('car');
+car.drive(); // car
+
+const truck = {
+	sound: 'truck',
+    driveTruck: car.drive
+};
+truck.driveTruck() // truck
+
+const driveNone = car.drive;
+driveNone(); // TypeError: Cannot read property 'sound' of undefined
+```
+
+* SearchBar 에서 발생하는 에러를 고치는 방법은 여러가지가 있다.
+    * constructor 에서 함수를 binding 하는 방법
+    ```jsx
+    class SearchBar extends React.Component {
+        constructor(props) {
+            super(props);
+            this.onFormSubmit = this.onFormSubmit.bind(this);
+        }
+        ...
+    }
+    ```
+    * arrow function 을 사용하는 방법 
+        * arrow function 이 자동으로 함수 내부의 this 를 bind 해준대
+    ```jsx
+    class SearchBar extends React.Component {
+        onFormSubmit = (event) => {
+        event.preventDefault();
+        console.log(this.state.term);
+        }
+        ...
+    }
+    ```
+    * jsx 태그 내에서 arrow function 을 사용하는 방법
+    ```jsx
+    class SearchBar extends React.Component {
+        render() {
+            return (
+                <form onSubmit={() => this.onFormSubmit}  action="">
+                    <input type="text" />
+                </form>
+            );
+        }
+        ...
+    }
+    ```
+
+### 부모 컴포넌트에게 이벤트 전달하기
+* jsx 태그에 onClick 이나 onSubmit 이벤트 핸들러를 등록했던 것과 비슷하게, 
+  부모의 콜백을 자식 컴포넌트가 호출할 수 있도록 잘 전달하고 등록하면 된다.
+* 아래 예제는 부모 컴포넌트인 App 의 onSearchSubmit 을 SearchBar 의 콜백으로 전달하여 이벤트를 전달받는 예제이다.
+
+```jsx
+class App extends React.Component {
+    onSearchSubmit(term) {
+        console.log(term);
+    }
+
+    render() {
+        return (
+            <div className="ui container">
+                <SearchBar onSubmit={this.onSearchSubmit} />
+            </div>
+        );
+    }
+}
+
+class SearchBar extends React.Component {
+    onFormSubmit = (event) => {
+        event.preventDefault();
+        // console.log(this.state.term);
+        this.props.onSubmit(this.state.term);
+    }
+    ...
+}
+```
+
+---
+
+## 08 Making API Requests with React
+
+* [unsplash](https://unsplash.com/developers)
+    * 고퀄리티 이미지 API 제공
+
+### network request 를 위해 사용하는 library 들
+* axios
+    * 3rd party package
+* fetch
+    * 최신 브라우저에 내장된 함수
+    * axios 를 사용하는 것 보다 더 많은 코드를 작성해야 할 것
+
+### axios 사용하기
+* 패키지 설치
+```sh
+$ npm install --save axios
+```
+
+* API 요청 날리기
+```jsx
+import React from 'react';
+import axios from 'axios';
+
+class App extends React.Component {
+    onSearchSubmit(term) {
+        axios.get('https://api.unsplash.com/search/photos', {
+            params: { query: term },
+            headers: { Authorization: 'Client-ID ...' }
+        });
+    }
+    ...
+}
+```
+
+* axios 를 사용한 위 요청은 시간이 소요되는 비동기 요청이므로 호출한 위치에서 응답 값을 바로 사용할 수 없다.
+* axios 는 get 이나 post 와 같은 함수 호출로 네트워크 요청을 하면 그 반환값으로 promise 를 준다.
+    * promise 란 시간이 걸리는 어떤 작업이 끝나고 난 후 알림을 주는 object 이다.
+* promise 의 then function 으로 API 요청에 callback 을 등록할 수 있다.
+```jsx
+axios.get('https://api.unsplash.com/search/photos', {
+    params: { query: term },
+    headers: { Authorization: 'Client-ID ...' }
+}).then(response => {
+    // callback
+    console.log(response.data);
+})
+```
+
+### Async Await 를 사용해서 요청 처리하기
+* 함수 앞에 async 키워드를 붙이면 비동기 요청의 응답을 await 로 기다릴 수 있다.
+```jsx
+async onSearchSubmit(term) {
+    const response = await axios.get('https://api.unsplash.com/search/photos', {
+        params: { query: term },
+        headers: { Authorization: 'Client-ID ...' }
+    });
+    console.log(response.data.results);
+}
+```
+
+### 기본 설정을 분리해서 axios 기반 custom client 만들기
+* @ api/unsplash.js
+    * 기본 설정을 기반으로 axios 객체를 만들어서 export
+```jsx
+import axios from 'axios';
+
+export default axios.create({
+    baseURL: 'https://api.unsplash.com/',
+    headers: {
+        Authorization: 'Client-ID Access-key'
+    }
+});
+```
+* @ components/App.js
+    * axios 대신 unsplash 를 import
+```jsx
+import unsplash from '../api/unsplash';
+
+class App extends React.Component {
+    onSearchSubmit = async (term) => {
+        const response = await unsplash.get('/search/photos', {
+            params: { query: term }
+        });
+    }
+    ...
+}
+```
+
+---
+
+## 09 Building Lists of Records
+
+### List 를 렌더링할 때 key attribute 의 의미
+* 아래 jsx 를 렌더링하면 key 속성이 없다는 워닝이 발생한다
+    * jsx 예제
+    ```jsx
+    import React from 'react';
+
+    const ImageList = (props) => {
+        const images = props.images.map(image => { return <img src={image.urls.regular} />; });
+        return <div>{images}</div>;
+    };
+    ```
+    * warning
+    ```
+    Warning: Each child in a list should have a unique "key" prop.
+    ```
+* 위 예제는 img 태그를 아래처럼 고쳐주면 해결이 된다.
+```jsx
+ <img src={image.urls.regular} key={image.id} />
+```
+* key를 정의해야하는 이유는 리스트의 일부 데이터만 갱신되었을 경우 새로 렌더링할 필요가 있는 아이템만 효율적으로 렌더링하게 하기 위함이다.
+
+
+---
