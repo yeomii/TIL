@@ -764,3 +764,160 @@ class App extends React.Component {
 
 
 ---
+
+## 10 Using Ref's for DOM Access
+* react component 가 render 된 후에 DOM element 의 attribute 값을 변경해줄 필요가 있을 때, Ref 로 DOM 에 접근할 수 있다.
+* React.createRef 로 ref object 를 만들고, jsx 태그의 ref 속성 안에 달아준다.
+
+```jsx
+class ImageCard extends React.Component {
+    constructor(props) {
+        super(props);
+        this.imageRef = React.createRef();
+    }
+
+    componentDidMount() {
+        this.imageRef.current.addEventListener('load', (e) => { console.log(e)});
+    }
+
+    render() {
+        const {urls, description} = this.props.image;
+        return (
+            <img 
+                ref={this.imageRef}
+                src={urls.regular} 
+                alt={description} 
+            />
+        );
+    }
+}
+```
+
+## 12 On We Go .. To Redux!
+* Redux는 state 를 관리하는 라이브러리다.
+* React 와 독립적으로 쓸 수 있다.
+
+### Redux Cycle
+* Action Creator > Action > dispatch > Reducers > State
+
+### Redux 사용하기
+* reducer 를 정의하고, Redux.combineReducers 로 reducer 합성한다.
+* 합성한 reducer 를 인자로해서 Redux.createStore 함수로 state store 를 만든다.
+* store.dispatch 함수 호출로 reducer 가 인식할 수 있는 action 을 전달한다.
+* action 은 type 과 payload 로 구성된다.
+* store.getState 함수를 호출해서 action 으로 인해 변경된 state 를 가져온다.
+
+```js
+// action
+const createPolicy = () => {
+  return {
+    type: 'CREATE_POLICY',
+    payload: { name: 'Alex',amount: 20 }
+  };
+};
+// action
+const deletePolicy = () => {
+  return {
+    type: 'DELETE_POLICY',
+    payload: { name: name }
+  };
+};
+// action
+const createClaim = (name, amountOfMoneyToCollect) => {
+  return {
+    type: 'CREATE_CLAIM',
+    payload: { name: name, amountOfMoneyToCollect: amountOfMoneyToCollect }
+  };
+};
+// reducer
+const claimsHistory = (oldListOfClaims = [], action) => {
+  if (action.type === 'CREATE_CLAIM') {
+    return [...oldListOfClaims, action.payload];
+  }
+  return oldListOfClaims;
+}
+// reducer
+const accounting = (bagOfMoney = 0, action) => {
+  if (action.type === 'CREATE_CLAIM') {
+    return bagOfMoney - action.payload.amountOfMoneyToCollect;
+  } else if (action.type === 'CREATE_POLICY') {
+    return bagOfMoney + action.payload.amount;
+  }
+  return bagOfMoney;
+}
+// reducer
+const policies = (listOfPolicies = [], action) => {
+  if (action.type === 'CREATE_POLICY') {
+    return [...listOfPolicies, action.payload.name];
+  } else if (action.type === 'DELETE_POLICY') {
+    return listOfPolicies.filter(name => name !== action.payload.name);
+  }
+  return listOfPolicies;
+}
+
+import Redux from 'redux';
+
+const {createStore, combineReducers} = Redux;
+// combining reducers
+const ourDepartments = combineReducers({
+  accounting: accounting,
+  claimsHistory: claimsHistory,
+  policies: policies
+});
+// creating store with combined reducer
+const store = createStore(ourDepartments);
+// make action and dispatch to make changes as reducer defines
+const action = createPolicy('Alex', 20);
+store.dispatch(action);
+// get changed state
+console.log(store.getState());
+```
+
+## 13 Integrating React with Redux
+
+* React-Redux 라이브러리
+    * React 와 Redux 는 독립적인 라이브러리이지만, 같이 사용하려면 React-Redux 라이브러리도 사용하는 것이 좋다
+* redux, react-redux 설치
+```sh
+$ npm install --save redux react-redux
+```
+* 프로젝트 구조
+```
+/src
+    /actions        # action 생성과 관련된 코드 포함
+    /components     # react component 코드 포함
+    /reducers       # reducer 관련 코드 포함
+    index.js
+```
+
+* React-Redux 적용하기
+```jsx
+// @ index.js
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { Provider } from 'react-redux';
+import { createStore } from 'redux';
+
+import App from './components/App';
+import reducers from './reducers';
+
+// Provider 태그를 최상위에 두고 store 속성에 store 를 생성해서 넣어준다
+ReactDOM.render(
+    <Provider store={createStore(reducers)}>
+        <App />
+    </Provider>
+    , document.querySelector('#root')
+);
+
+// @ components/SongList.js
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
+
+class SongList extends Component {
+    render() {
+        return <div>SongList</div>;
+    }
+}
+// connect 함수로 store 와 연결해준다.
+export default connnect()(SongList);
+```
