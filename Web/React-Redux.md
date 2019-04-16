@@ -908,16 +908,226 @@ ReactDOM.render(
     </Provider>
     , document.querySelector('#root')
 );
+/////////////////////////////////////////////////////
 
 // @ components/SongList.js
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+// selectSong 은 action 을 반환하는 함수이다
+import { selectSong } from '../actions';
 
 class SongList extends Component {
     render() {
-        return <div>SongList</div>;
+        return (
+            <div>
+                {this.props.songs}
+                <button onClick={() => this.props.selectSong(song)}>Select</button>
+            </div>
+        );
     }
 }
+const mapStateToProps = (state) => {
+    // 반환되는 object 는 props 로 사용될것이다
+    return { songs: state.songs, seletedSong: state.selectedSong };
+};
 // connect 함수로 store 와 연결해준다.
-export default connnect()(SongList);
+export default connect(mapStateToProps, { selectSong })(SongList);
 ```
+
+* Provider 와 connect 를 사용하는 것이 키포인트
+    * provider 는 공통의 state 를 사용할 수 있도록 저장소를 만들어주는 역할을 하고
+    * connect 는 각 component 에서 공통의 state 가 변경될 때 마다 특정 값을 가져다 쓸 수 있도록 콜백함수를 연결해 줄 수 있도록 한다.
+    * 또한 connect 는 공통의 state 를 변경할 수 있도록 action 을 생성하는 함수를 각 컴포넌트의 props 에 연결해준다.
+
+* 버튼으로 증감시키는 Counter 예제
+```jsx
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { Provider, connect } from 'react-redux';
+import { createStore, combineReducers } from 'redux';
+
+// Action creator
+const increment = () => ({ type: 'increment' });
+const decrement = () => ({ type: 'decrement' });
+
+// react component
+const Counter = (props) => {
+    return (
+        <div>
+            <button className="increment" onClick={props.increment}>Increment</button>
+            <button className="decrement" onClick={props.decrement}>Decrement</button>
+            Current Count: <span>{props.count}</span>
+        </div>
+    );
+};
+
+// 공통의 state 값 중 count 값을 props 에 매핑
+const mapsToProps = (state) => {
+    return { count: state.count };
+}
+// state 변경시 값을 받아오는 함수와 state 를 직접 변경할 수 있도록 action 을 생성하는 함수를 Counter 라는 컴포넌트에 바인딩
+const WrappedCounter = connect(mapsToProps, {increment, decrement})(Counter);
+
+// action 을 받을 때 어떻게 state 를 변경할지 정의한 reducer 들을 모아서 공통의 state 저장소를 생성
+const store = createStore(combineReducers({
+    count: (count = 0, action) => {
+        if (action.type === 'increment') {
+            return count + 1;
+        } else if (action.type === 'decrement') {
+            return count - 1;
+        } else {
+            return count;
+        }
+    }
+}));
+
+// html 로 렌더링
+ReactDOM.render(
+    <Provider store={store}>
+        <WrappedCounter />
+    </Provider>, 
+    document.querySelector('#root')
+);
+```
+
+## 14 Async Actions with Redux Thunk
+
+* [JsonPlaceholder (fake json data maker)](https://jsonplaceholder.typicode.com/)
+
+### redux-thunk
+* 설치
+```sh
+$ npm install --save redux-thunk
+```
+* redux-thunk
+    * redux application 에서 요청을 날릴 수 있도록 도와주는 middleware
+
+### Redux 의 일반적인 데이터 로딩
+* component 가 브라우저에 렌더링됨
+* componentDidMount lifecycle 함수가 호출됨
+* `componentDidMount` 함수에서 액션을 생성하는 함수를 호출
+* 액션을 생성하는 함수는 API 요청을 날림
+* API 응답 데이터를 받음
+* 액션을 생성하는 함수가 응답된 데이터를 받아서 payload 프로퍼티에 설정한 action 오브젝트를 반환
+* reducer 함수에서 action 을 보고 payload 의 데이터를 state 로 반환
+* 새 state object 를 보고 redux/react-redux 라이브러리가 react app 을 다시 렌더링함
+
+### Redux 와 async action
+* 일반적인 action creator 안에서 비동기 함수를 호출한 후 응답을 기다릴 수 없다.
+    ```jsx
+    import axios from 'axios';
+
+    export const fetchPosts = async () => {
+        const url = 'https://jsonplaceholder.typicode.com/posts';
+        const response = await axios.get(url);
+        return {
+            type: 'FETCH_POSTS',
+            payload: response
+        };
+    };
+    ```
+    * 위 코드를 connect 로 component 에 연결하여 호출하게 되면 아래와 같은 에러메시지가 출력된다.
+    ```
+    Error: Actions must be plain objects. Use custom middleware for async actions.
+    ```
+    * action creator 는 plain js object 를 반환해야한다
+        * async await 코드가 ES2015 로 변환되면서 `jsonPlaceholder.get` 호출의 결과를 먼저 반환하게 된다
+    * async await 를 사용하지 않고 promise 를 payload 로 반환하게 되더라도 reducer 에 의해 action object 가 처리되는 시점에 데이터가 도착하지 않았을수도 있기 떄문에 문제가 생긴다.
+* 비동기 함수를 호출하는 action creator 를 만들 경우 middleware 를 사용해야 한다.
+
+* redux 의 middleware
+    * 모든 action 에 대해 호출되는 함수
+    * 액션을 중단시키거나 수정할 수 있다
+    * 비동기 액션을 처리하기 위해 많이 사용된다
+    * 본 강좌에서는 비동기 액션 처리를 위해 redux-thunk 라이브러리를 사용한다.
+
+* redux-thunk 의 action creator 는
+    * action object 를 반환하거나
+    * 함수를 반환할 수 있다
+
+### redux-thunk 사용하기
+* redux-thunk 는 함수를 반환하는 action creator 에게 dispatch, getState 함수를 전달해서 action creator 가 원하는 타이밍에 해당 함수를 호출할 수 있도록 한다.
+* 비동기 호출을 하는 action creator 는 비동기 호출이 완료되었을 때 dispatch 로 action 을 redux store 에 전달해준다.
+```jsx
+// @ index.js
+
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { Provider } from 'react-redux';
+import { createStore, applyMiddleware } from 'redux';
+// thunk import
+import thunk from 'redux-thunk';
+
+import App from './components/App';
+import reducers from './reducers';
+
+// store 를 생성할 때 thunk 미들웨어를 적용해준다.
+const store = createStore(reducers, applyMiddleware(thunk));
+
+ReactDOM.render(
+    <Provider store={store}>
+        <App />
+    </Provider>,
+    document.querySelector('#root')
+);
+
+// @ actions/index.js
+import axios from 'axios';
+
+export const fetchPosts = () => {
+    // dispatch, getState 함수를 인자로 받는 함수를 반환한다
+    return async function (dispatch, getState) {
+        const url = 'https://jsonplaceholder.typicode.com/posts';
+        const response = await axios.get(url);        
+        dispatch({ type: 'FETCH_POSTS', payload: response });
+    }
+};
+```
+
+## 15 Redux Store design
+
+### Reducer 의 규칙
+* undefined 를 반환하면 안된다
+* 이전 state 또는 action 만을 사용하여 state 를 만들어야 한다.
+* 자신 외의 다른 값에 접근하면 안된다.
+* input 으로 들어오는 state 값을 변형하여 반환하지 않을것을 권장한다.
+    * array 동치 연산 (`===`) 의 경우 array 의 주소가 같은지 아닌지만 보고 확인한다.
+    * redux 의 경우 이전 state 와 현재 state 가 다른지를 `===` 연산자로 비교하기 때문에 이전 state 의 array 에 값을 추가하거나 제거하여 반환하면 state 가 바뀐것을 인식하지 못할 수 있다.
+
+### 동일한 요청을 여러번 날려야 하는 문제 해결하기
+* `_.memoize` 사용하기
+    * https://lodash.com/docs/4.17.11#memoize
+    * 설치
+    ```sh
+    $ npm install --save lodash
+    ```
+    * 사용
+    ```jsx
+    import _ from 'lodash';
+    
+    // memoize 가 _fetchUser 함수의 호출 결과를 기억
+    const _fetchUser = _.memoize(async (id, dispatch) => {
+        const url = 'https://jsonplaceholder.typicode.com/posts';
+        const response = await axios.get(`${url}/users/${id}`);
+        dispatch({ type: 'FETCH_USER', payload: response.data });
+    });
+
+    export const fetchUser = id => dispatch => _fetchUser(id, dispatch);
+    ```
+* 미리 unique 한 요청들을 모아놓은 후 해당 리스트에 대해서만 순서대로 요청을 날린다
+    * 예제
+    ```jsx
+    import _ from 'lodash';
+
+    export const fetchPosts = () => async dispatch => { .. };
+    export const fetchUser = id => async dispatch =>  { ... };
+
+    // action creator 안에서 action creator 를 호출하는 것도 가능
+    // action creator 호출 후 변경된 state 는 getState 함수로 접근할 수 있다
+    export const fetchPostsAndUsers = () => async (dispatch, getState) => {
+        await dispatch(fetchPosts());
+
+        const ids = _.uniq(getState().posts.map(post => post.userId));
+        ids.forEach(id => dispatch(fetchUser(id)));
+    }
+    ```
