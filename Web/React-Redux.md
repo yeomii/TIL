@@ -1131,3 +1131,53 @@ export const fetchPosts = () => {
         ids.forEach(id => dispatch(fetchUser(id)));
     }
     ```
+
+## 16 Navigation with React Router
+
+* 하나의 웹앱 내에서 서로 다른 페이지로 이동하기 위해 react-router 라이브러리를 사용할 수 있다
+
+### React Router 사용하기
+* 설치
+```sh
+$ npm install --save react-router-dom
+```
+* 가장 간단한 예제
+    ```jsx
+    import React from 'react';
+    import { BrowserRouter, Route } from 'react-router-dom';
+
+    const PageOne = () => { return <div>Page 1</div>; }
+    const PageTwo = () => { return <div>Page 2</div>; }
+
+    const App = () => {
+        return (
+            <div>
+                <BrowserRouter>
+                        <Route path="/" exact component={PageOne} />
+                        <Route path="/p2" exact component={PageTwo} />
+                </BrowserRouter>
+            </div>
+        );
+    };
+    ```
+
+* 앱 내에서 anchor 를 쓰지 않고 Link 태그를 쓰도록 한다
+    * `<a href="/p2">page two</a>` 와 같이 a 태그를 써서 내비게이션 하게 되면 서버는 항상 html 페이지를 새로 내려준다. 
+    * 대신 react-router-dom 의 Link 컴포넌트를 사용하도록 한다
+    ```jsx
+    <Link to="/p2>page two</Link>
+    ```
+    * 브라우저에서 렌더링 될 때는 Link 태그가 a 태그로 변환된다
+    * Router 밖에서 Link 태그를 사용하는 경우는 에러가 나므로 주의!
+
+### Router 의 종류
+* 배포 문제 때문에 라우터 종류를 나누게 되었다
+* BrowserRouter
+    * `localhost:3000/page`
+    * TLD (top level domain) 또는 포트 뒤에 있는 모든 것이 path
+* HashRouter
+    * `localhost:3000/#/page`
+    * # 뒤에 나오는 모든 것이 path
+* MemoryRouter
+    * `localhost:3000/`
+    * page navigation 하는데 url 을 사용하지 않음
