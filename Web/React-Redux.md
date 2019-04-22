@@ -1181,3 +1181,61 @@ $ npm install --save react-router-dom
 * MemoryRouter
     * `localhost:3000/`
     * page navigation 하는데 url 을 사용하지 않음
+
+## 17 Handling Authentication with React
+
+### OAuth-Based Authentication
+* 사용자는 외부 서비스 제공자 (구글, 페이스북 등) 를 통해 인증 (authentication) 하고
+* 우리가 작성한 애플리케이션이 사용자의 정보에 접근할 수 있도록 사용자가 권한을 부여 (authorization) 해준다
+* https://developers.google.com/identity/protocols/OAuth2
+
+### OAuth for Servers vs Browser Apps
+* OAuth for Servers
+    * 주로 사용자가 로그인한 상태가 아닐 때에도 사용자의 정보에 접근할 필요가 있을 때 사용 (주기적으로 실행되어야 하는 애플리케이션 등)
+    * 사용자의 많은 정보를 저장해야 해서 초기 셋업이 어려움
+* OAuth for Browser Apps
+    * 주로 사용자가 로그인한 상태에서만 사용자의 정보에 접근
+    * 구글의 경우 js library 의 도움을 받을 수 있어 사용하기 쉬움
+
+### Google OAuth2 API 사용하기
+* [구글 API 콘솔](https://console.developers.google.com)에서 새 프로젝트를 만든다
+* 새로 생성한 프로젝트를 선택한 후, Credentials (사용자 인증정보) 탭에서 사용자 인증정보를 만들기를 선택하고 OAuth 클라이언트 ID 를 생성한다.
+* OAuth 클라이언트 ID 를 생성할 때, Authorized JS origins 값은 `http://localhost:3000` 과 같이 클라이언트 앱의 원본 URI 를 입력한다.
+* html head 태그 안에 아래와 같이 작성해서 oauth 라이브러리를 불러온다.
+    ```html
+        <script src="https://apis.google.com/js/api.js"></script>
+    ```
+    * html 페이지를 로딩했을 때 크롬 개발자 콘솔에서 gapi 가 정의되어 있는 것을 확인할 수 있다.
+* gapi 를 사용해 oauth2 클라이언트를 로딩해주고 클라이언트 id 와 scope 를 주어 초기화 해준다.
+    * [gapi 문서](https://developers.google.com/api-client-library/javascript/reference/referencedocs) 의 `gapi.auth2` 참고
+    ```jsx
+    class GoogleAuth extends React.Component {
+        componentDidMount() {
+            window.gapi.load('client:auth2', () => {
+                // load callback
+                window.gapi.client.init({
+                    clientId: '{client id}',
+                    scope: 'email'
+                }).then(() => {
+                    this.auth = window.gapi.auth2.getAuthInstance();
+                    this.setState({ isSignedIn: this.auth.isSignedIn.get() });
+                    this.auth.isSignedIn.listen(this.onAuthChange);
+                });
+            });
+        }
+        ...
+    }
+    ```
+
+## 18 Redux Dev Tools
+
+### [redux-devtools-extension](https://github.com/zalmoxisus/redux-devtools-extension)
+- Redux 를 사용해서 개발할 때 디버깅하는데 도움이 되는 chrome extension 
+- Readme 의 Installation 섹션을 따라 설치하자
+    - middleware 도 사용할거라면 [`1.2 Advanced store setup`](https://github.com/zalmoxisus/redux-devtools-extension#12-advanced-store-setup) 도 적용하자
+- action history 와 action 에 따른 state 변화를 확인할 수 있다
+
+### Redux debug session
+* `http://localhost:3000/?debug_session=<session_name>`
+    * 위 url 로 react-redux 앱에 접속하면 redux-devtool 은 디버그 세션을 시작한다.
+    * 디버그 세션에서는 페이지를 새로고침해도 redux store 에 있는 모든 데이터가 그대로 유지된다.
