@@ -793,6 +793,8 @@ class ImageCard extends React.Component {
 }
 ```
 
+---
+
 ## 12 On We Go .. To Redux!
 * Redux는 state 를 관리하는 라이브러리다.
 * React 와 독립적으로 쓸 수 있다.
@@ -872,6 +874,8 @@ store.dispatch(action);
 // get changed state
 console.log(store.getState());
 ```
+
+---
 
 ## 13 Integrating React with Redux
 
@@ -990,6 +994,8 @@ ReactDOM.render(
 );
 ```
 
+---
+
 ## 14 Async Actions with Redux Thunk
 
 * [JsonPlaceholder (fake json data maker)](https://jsonplaceholder.typicode.com/)
@@ -1084,6 +1090,8 @@ export const fetchPosts = () => {
 };
 ```
 
+---
+
 ## 15 Redux Store design
 
 ### Reducer 의 규칙
@@ -1131,6 +1139,8 @@ export const fetchPosts = () => {
         ids.forEach(id => dispatch(fetchUser(id)));
     }
     ```
+
+---
 
 ## 16 Navigation with React Router
 
@@ -1182,6 +1192,8 @@ $ npm install --save react-router-dom
     * `localhost:3000/`
     * page navigation 하는데 url 을 사용하지 않음
 
+---
+
 ## 17 Handling Authentication with React
 
 ### OAuth-Based Authentication
@@ -1227,6 +1239,8 @@ $ npm install --save react-router-dom
     }
     ```
 
+---
+
 ## 18 Redux Dev Tools
 
 ### [redux-devtools-extension](https://github.com/zalmoxisus/redux-devtools-extension)
@@ -1239,3 +1253,98 @@ $ npm install --save react-router-dom
 * `http://localhost:3000/?debug_session=<session_name>`
     * 위 url 로 react-redux 앱에 접속하면 redux-devtool 은 디버그 세션을 시작한다.
     * 디버그 세션에서는 페이지를 새로고침해도 redux store 에 있는 모든 데이터가 그대로 유지된다.
+
+---
+
+## 19 Handling Forms with Redux Form
+
+* 기존의 방식대로 form 을 사용할 경우
+    * input element 의 onChange 등의 리스너 함수에 setState 를 호출하는 콜백을 등록하고
+    * state 값이 업데이트 될 때마다 input element 의 value 값을 업데이트 하도록 컴포넌트를 구성해야 한다
+* redux form 을 사용하면 
+    * input element 의 값을 redux store 로 가져오기 쉽도록 해준다 (redux from reducer)
+
+### [Redux Form](redux-form.com) 으로 Form 만들기
+* 설치 
+```sh
+$ npm install --save redux-form
+```
+* [Redux form examples](https://redux-form.com/8.2.0/examples/) 페이지에서 원하는 종류의 form 을 선택한다
+* reducer 를 만들 때 `redux-form` 으로부터 reducer 를 받아와 combinReducers 의 인자로 넣어준다
+    ```jsx
+    @ reducers/index.js
+    import { combineReducers } from 'redux';
+    import { reducer as formReducer } from 'redux-form';
+
+    export default combineReducers({
+        form : formReducer
+    });
+    ```
+* redux form component 를 만들때 reduxForm 메서드와 Field 컴포넌트를 이용하면 된다
+    ```jsx 
+    import React from 'react';
+    import { Field, reduxForm } from 'redux-form';
+
+    class StreamCreate extends React.Component {
+        renderInput(formProps) {
+            // onChange={formProps.input.onChange} value={formProps.input.value} 로 매핑
+            return (
+                <div className="field">
+                    <label>{formProps.label}</label>
+                    <input {...formProps.input} />
+                </div>
+            );
+        }
+
+        render() {
+            return (
+                <form >
+                    <Field name="title" component={this.renderInput} label="Enter Title"/>
+                    <Field name="description" component={this.renderInput} label="Enter Description"/>
+                </form>
+            );
+        }
+    }
+
+    export default reduxForm({
+        form: 'streamCreate'
+    })(StreamCreate);
+    ```
+    * Field 는 여러 종류의 input 이 될 수 있다
+* form 을 submit 할 때는 redux-form 에서 제공하는 `handleSubmit` 을 component 의 콜백함수와 함께 호출한다.
+    ```jsx 
+    onSubmit(formValues) {
+        console.log(formValues);
+    }
+    
+    render () {
+        return (
+            <form className="ui form" onSubmit={this.props.handleSubmit(this.onSubmit)}>
+                <Field name="title" component={this.renderInput} label="Enter Title"/>
+                <button className="ui button primary">Submit</button>
+            </form>
+        );
+    }
+    ```
+* form 입력값을 validation 하려면 validate 함수를 정의한 후 reduxForm 의 validate 인자로 넘겨주면 된다
+    ```jsx
+    @ component
+    const validate = (formValues) => {
+        const errors = {};
+        if (!formValues.title) {
+            errors.title = 'Enter Title';
+        }
+        if (!formValues.description) {
+            errors.description = 'Enter Description';
+        }
+        return errors;
+    }
+
+    export default reduxForm({
+        form: 'streamCreate',
+        validate
+    })(StreamCreate);
+    ```
+    * validate 함수의 결과는 Field 컴포넌트의 component 에서 `formProps.meta.error` 로 접근할 수 있다 (위 예제에서 renderInput 함수)
+
+
