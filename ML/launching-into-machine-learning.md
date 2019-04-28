@@ -72,7 +72,7 @@
 ### Confusion Matrix (혼동 행렬)
 * 분류 모델의 성능을 설명하기 위해 자주 사용되는 표를 말한다
 * 아래 그림은 binary classifier 에 대한 confusion matrix 이다.
-    * ![](./confusion-matrix.png)
+    * ![](./images/confusion-matrix.png)
 * TP (True Positive)
     * 모델의 예측 결과가 true 이고, 실제로 정답 true 인 경우
 * FP (False Positive)
@@ -93,4 +93,23 @@
     * `(TP+TN)/Total`
     * 전체 데이터 중 모델이 맞게 예측한 것의 비율
 
+## Generalization and Sampling
+### Generalization
+* 복잡한 모델을 선택하면 loss 값이 매우 작아질 수 있지만 데이터에 과적합하게 학습될 수 있다.
+* 단순한 모델을 선택하면 loss 값은 커질 수 있지만 새로운 데이터 셋에서도 비슷한 예측성능을 보일 수 있다.
+* 아래 예제는 단순한 모델과 복잡한 모델의 새로운 데이터에 대한 예측 성능을 나타낸 것이다.
+* 이러한 과적합을 막으려면 training 데이터셋에 대한 loss 보다 validation 데이터셋에 대한 loss 가 유의미하게 커지기 시작할 때 학습을 중단시키는 방법이 있다.
 
+![](./images/simple-model.png)
+![](./images/complex-model.png)
+
+* Underfit vs Fit vs Overfit
+![](./images/fitting.png)
+
+* 데이터셋이 클 경우 테스트 데이터셋을 따로 두는 것을, 데이터셋이 작을 경우 cross validation 을 사용하는 것을 권장한다.
+* cross validation
+    * 학습에 라운드를 두어 라운드마다 training 데이터셋과 validation 데이터셋을 다시 나누는 방법이다.
+
+### Sampling
+* 데이터셋이 너무 큰 경우에 사용하는 방법
+* 모델을 처음부터 만들 때에는 큰 데이터의 일부만 가지고 고도화 해나가는 것이 좋음
