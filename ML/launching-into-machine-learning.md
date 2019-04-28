@@ -44,19 +44,53 @@
     * 선형분류 문제로 푸는 경우, logistic regression 을 손실함수로 하여 노란색 선을 그을 수 있다. (분류가 3개 이상인 경우 Cross entropy 가 많이 사용된다)
     * 두 모델이 그리는 선이 다른 이유는, 손실함수에 따라서 오차 (정답과 예측값의 차) 에 대한 페널티의 크기가 다르기 때문이다.
 
-### ML History : Linear Regression
+### ML History
+#### ML History : Linear Regression
 
-### ML History : Perceptron
+#### ML History : Perceptron
 
-### ML History : Neural Networks
+#### ML History : Neural Networks
 
-### ML History : Kernel Methods
+#### ML History : Kernel Methods
 
-### ML History : Random Forest
+#### ML History : Random Forest
 
-### ML History : Modern Neural Networks
+#### ML History : Modern Neural Networks
 
+## Optimization
 
+* loss fuction
+    * 학습과정에서 사용됨
+    * 이해하기 어려움
+    * 비즈니스적 목표와 간접적으로 연결됨
 
+* Performance metric
+    * 학습 이후에 사용됨
+    * 이해하기 쉬움
+    * 비즈니스적 목표와 직접적으로 연결됨
+
+### Confusion Matrix (혼동 행렬)
+* 분류 모델의 성능을 설명하기 위해 자주 사용되는 표를 말한다
+* 아래 그림은 binary classifier 에 대한 confusion matrix 이다.
+    * ![](./confusion-matrix.png)
+* TP (True Positive)
+    * 모델의 예측 결과가 true 이고, 실제로 정답 true 인 경우
+* FP (False Positive)
+    * 모델의 예측 결과가 true 이고, 실제 정답은 false 인 경우
+* FN (False Negative)
+    * 모델의 예측 결과가 false 이고, 실제 정답은 true 인 경우
+* TN (True Negative)
+    * 모델의 예측 결과가 false 이고, 실제 정답도 false 인 경우
+* Precision
+    * `TP/(TP+FP)`
+    * true 라고 예측한 것 중 맞게 예측한 것의 비율
+    * FP 가 증가하면 Precision 은 감소한다
+* Recall
+    * `TP/(TP+FN)`
+    * 실제 정답이 true 인 것 중 맞게 예측한 것의 비율
+    * sensitivity 라고도 한다
+* Accuracy 
+    * `(TP+TN)/Total`
+    * 전체 데이터 중 모델이 맞게 예측한 것의 비율
 
 
