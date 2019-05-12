@@ -1347,4 +1347,67 @@ $ npm install --save redux-form
     ```
     * validate 함수의 결과는 Field 컴포넌트의 component 에서 `formProps.meta.error` 로 접근할 수 있다 (위 예제에서 renderInput 함수)
 
+---
 
+## 20 REST-Based Apps
+
+### REST Convention
+* API 디자인을 위한 표준화된 시스템
+![](./images/rest-convention.jpeg)
+
+### json-server 패키지
+* https://www.npmjs.com/package/json-server
+* 개발용으로 쉽게 api 서버를 만들 수 있는 패키지
+* 설치
+  ```sh
+  $ npm init
+  $ npm install --save json-server
+  ```
+* 서버 응답을 정의하기 위해 `db.json` 파일을 만들고 아래와 같이 응답을 정의해준다
+  ```json
+  ```
+* package.json 부분에 아래와 같이 적어주면 `npm start` 로 시작할 수 있다
+  ```json
+  {
+      ...
+      "scripts": {
+        "start": "json-server -p 3001 --watch db.json"
+      },
+      ...
+  }
+  ```
+* 주의) 기존 데이터에서 변경사항만 반영하고 싶을 때에는 `PUT` 대신 `PATCH` 메소드를 사용하자
+
+### Intentional Navigation vs Programmatic Navigation
+* Intentional Navigation
+    * 사용자가 `Link` 컴포넌트를 클릭해 페이지를 이동하는 경우
+* Programmatic Navgation
+    * 앱에서 강제로 다른 페이지로 이동하게 하는 경우
+
+### react-router 를 이용해서 Programmatic Navgation 구현하기
+* history object 를 만들고 Router 컴포넌트에 에 연결
+    ```jsx
+    @ history.js
+    import { createBrowserHistory } from 'history'; 
+    export default createBrowserHistory();
+
+    @ App.js
+    const App = () => {
+    return (
+        <div className="ui container">
+            <Router history={history}>
+            ...
+            </Router>
+        </div>
+        );
+    };
+    ```
+* 원하는 시점에 `history.push(path)` 를 호출
+    ```jsx
+    export const createStream = formValues => async (dispatch, getState) => {
+        const { userId } = getState().auth;
+        const response = await streams.post('/streams', { ...formValues, userId });
+        dispatch({type: CREATE_STREAM,payload: response.data});
+        history.push('/');
+    };
+    ```
