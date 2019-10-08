@@ -7,6 +7,10 @@ CREATE TABLE my_table_backup LIKE my_table;
 
 2. dynamic partitioning 을 활성화하고 기존 테이블의 데이터를 새 테이블로 복제한다.
 ```hql
+-- 필요할경우 파티션 수 설정 조정
+SET hive.exec.max.dynamic.partitions = 1000;
+SET hive.exec.max.dynamic.partitions.pernode = 1000;
+
 SET hive.exec.dynamic.partition = true;
 SET hive.exec.dynamic.partition.mode = nonstrict;
 
