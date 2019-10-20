@@ -22,3 +22,33 @@ $ curl -X GET "localhost:9200/_cat/health?v&pretty"
 epoch      timestamp cluster       status node.total node.data shards pri relo init unassign pending_tasks max_task_wait_time active_shards_percent
 1570942644 04:57:24  elasticsearch green           3         3      0   0    0    0        0             0                  -                100.0%
 ```
+
+## Document API
+* 아주 기본적인 usage 부터 정리
+### 문서 저장하기
+```
+POST localhost:9200/sample-index/_doc/
+PUT localhost:9200/sample-index/_doc/<_id>
+```
+* 문서 아이디를 정해주려면 PUT 메소드를 사용하도록 하자
+
+### 문서 가져오기
+```
+GET localhost:9200/<index>/_doc/<_id>
+HEAD localhost:9200/<index>/_doc/<_id>
+```
+* HEAD 는 해당 문서가 존재하는지 확인하기 위해 사용한다.
+
+### 문서 삭제하기
+```
+DELETE localhost:9200/<index>/_doc/<_id>
+```
+
+### 문서 업데이트하기
+```
+POST localhost:9200/<index>/_update/<_id>
+```
+* uri 의 `_update` 주의
+* 문서의 업데이트를 스크립트화 할 수 있다.
+* 스크립트는 업데이트, 삭제, 혹은 수정을 스킵할 수도 있다.
+* 위 api 는 문서의 일부를 수정할수 있도록 해주는데, 기존 문서를 완전히 바꾸고 싶다면 `index API` 사용을 권장한다.
