@@ -1,6 +1,7 @@
 # 함수형 코틀린
 
 * http://www.yes24.com/Product/goods/69086858
+* https://play.kotlinlang.org (같이 사용하자)
 
 ---
 
@@ -116,4 +117,108 @@ typealias Oven = Machine<Bakeable>
         * 추상메소드를 가질 수도 있음
         * when 구문과 함깨 사용할 때 모든 case 가 커버되지 않으면 컴파일 에러가 발생할 수 있음
 
+---
+
+## 02 함수형 프로그래밍 시작
+
+### 함수형 프로그래밍이란?
+* 하나의 패러다임 (프로그램을 구성하는 스타일)
+* 핵심은 표현식으로 데이터를 변환하는 것 (이상적으로는 부수 효과가 없어야 함)
+* 같은 입력으로 호출된 함수는 항상 같은 값을 반환하도록 보장
+* 이점
+    * 코드는 읽기 쉽고 테스트하기 쉽다 - 함수가 외부 가변 상태에 의존하지 않기 때문
+    * 상태와 부수 효과가 주의 깊게 계획된다
+    * 동시성이 좀 더 안전해지며 더 자연스러워 진다
+
+### 기본 개념
+* 일급 함수 (fist-class function)
+    * 함수를 다른 타입으로 취급하여 변수, 파라미터, 반환, 일반화 타입 등으로 사용할 수 있게 한다.
+* 고차 함수 (high-order function)
+    * 다른 함수를 파라미터로 사용하거나 반환하는 함수
+* 코틀린은 일급 함수와 고차 함수 컨셉을 모두 지원
+
+### 예제
+```kotlin
+val capitalize = { str: String -> str.capitalize() }
+
+// capitalize 와 동일
+val capitalize2  = object: Function1<String, String> {
+    override fun invoke(p1: String): String {
+        return p1.capitalize()
+    }
+}
+```
+* 위 예제에서 `capitalize` 는 `(String) -> String` 타입 (syntactic sugar) 또는 `Function1<String, String>` 이다. 
+* `Function1<P, R>` 은 코틀린 표준 라이브러리에 정의된 인터페이스로, `invoke(P) : R` 인 하나의 메소드다
+
+```kotlin
+fun <T> transform(t: T, fn: (T) -> T): T {
+    return fn(t)
+}
+
+fun reverse(s: String): String { return str.reversed() }
+
+val reversedStr = transform("abc", ::reverse)
+val reversedStr2 = transform("abc", { s -> s.reversed() })
+val reversedStr3 = transform("abc", { it.reversed() })
+val reversedStr4 = transform("abc") { it.reversed() }
+```
+* 위 예제는 람다 함수를 다른 함수의 파라미터로 사용하는 예제이다.
+* `::` 을 사용해 함수에 대한 참조를 전달할 수 있다
+* 일반적으로 람다를 전달하고 (2), 암시적 파라미터를 사용하기도 한다. (3)
+* 함수가 마지막 파라미터로 람다를 받으면, 람다는 괄호 밖으로 전달될 수 있다. (4)
+    * 이 기능을 사용해 코틀린에서 DSL (domain specific language) 를 생성할 수 있다
+
+```kotlin
+fun unless(cond: Boolean, block: () -> Unit) {
+    if (!cond) block()
+}
+
+val authenticated = false
+unless(authenticated) { // if (!authenticated) 와 같음 
+    print("인증되지 않은 사용자입니다")
+}
+```
+
+### 순수함수
+* 부수 효과나 메모리, IO 가 없다.
+* 참조 투명도, 캐싱(메모이제이션) 등 다양한 속성을 가진다.
+* 코틀린은 순수 함수를 작성하는 것은 가능하지만, 실행하지는 않을 것이다. 
+
+### 재귀함수
+* 실행을 멈추는 조건과 함께 스스로를 호출하는 함수다.
+* `tailrec` 수정자를 통해 꼬리 재귀 함수의 스택 관리를 최적화 할 수 있다.
+```kotlin
+fun tailrecFactorial(n: Long): Long {
+    tailrec fun go(n: Long, acc: Long): Long {
+        return if ( n <= 0 ) acc else go(n - 1, n * acc)
+    }
+    return go(n, 1)
+}
+```
+
+### 느긋한 계산법
+* 일부 함수형 언어는 `lazy` 계산 모드를 제공한다.
+* 코틀린은 기본적으로는 엄격한 평가를 사용하지만, 코틀린 표준 라이브러리와 `Delegate Properties` 를 언어 기능의 일부로 제공한다.
+
+```kotlin
+val i by lazy { 
+    println("lazy evaluation") 
+    1
+}
+
+println("before i")
+println(i) // lazy evaluation 과 1 이 출력됨
+
+// divide by 0 에 의한 ArithmeticException 이 발생하지 않음. 람다를 사용했기 때문에 lazy 하게 계산됨
+println(listOf({2+1}, {1/0}).size) 
+```
+* 위 예제에서 `by` 예약어 뒤의 `lazy` 상위 함수는 `i` 에 처음 접근할 때 실행될 초기화 람다 함수를 받는다.
+* 또 일부 상황에서는 노멀 람다 함수를 사용할 수 있다.
+
+### 함수적 컬렉션
+* 고차 함수를 통해 요소와 상호작용할 수 있는 방법을 제공하는 컬렉션
+* filter, map, fold 등의 공통된 작업 제공
+* 함수적 컬렉션은 순수 함수적 데이터 구조일 수도 있고 아닐 수도 있음
+    * 순수 함수적 데이터 구조는 변경 불가능하며, 느긋한 계산법과 다른 기능 테크닉을 사용
 
