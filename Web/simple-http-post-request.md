@@ -40,6 +40,7 @@
 </html>
 ```
 
+## echo 서버로 요청 확인
 * node package 중 하나인 `http-echo-server` 를 띄워 쉽게 요청 전송을 테스트할 수 있다.
 ```bash
 $ npx http-echo-server
