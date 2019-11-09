@@ -20,3 +20,17 @@ $ mysql -h <host> -u <user-name> -p db2 < dump-file-name.sql
 ## json, csv 포맷으로 테이블 내보내기
 * 여러가지 방법이 있겠지만 MySQL Workbench 의 data export 기능을 쓰는 것이 편리하다
 
+## 초기 비밀번호 세팅
+- mysql -uroot
+- ALTER USER 'root'@'localhost' IDENTIFIED BY '새로운 비밀번호';
+- create database bboard
+
+## 외부 접속권한 주기
+  - grant all on bboard.* to root@'211.56.96.51' identified by '비밀번호';
+  - grant all on bboard.* to root@'133.186.%.%' identified by '비밀번호';
+## utf 관련 (database 만들자마자 설정해주기)
+- ALTER SCHEMA database_name DEFAULT CHARACTER SET utf8mb4  DEFAULT COLLATE utf8mb4_unicode_ci ;
+- ALTER TABLE tablename CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+## DB 스키마 확인
+- select * from information_schema.SCHEMATA where schema_name=database_name AND table_name=table_name;
