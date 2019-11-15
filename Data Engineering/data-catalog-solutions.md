@@ -17,3 +17,9 @@
     * https://www.informatica.com/in/products/big-data/enterprise-data-catalog.html
     * https://www.talend.com/products/data-catalog/
     * https://www.waterlinedata.com/products/data-catalog/
+
+## data catalog 를 위한 schema crawler
+* https://github.com/schemacrawler/SchemaCrawler
+
+## DMS (data management system)
+* https://github.com/ckan/ckan
