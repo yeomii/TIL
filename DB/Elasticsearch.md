@@ -52,3 +52,17 @@ POST localhost:9200/<index>/_update/<_id>
 * 문서의 업데이트를 스크립트화 할 수 있다.
 * 스크립트는 업데이트, 삭제, 혹은 수정을 스킵할 수도 있다.
 * 위 api 는 문서의 일부를 수정할수 있도록 해주는데, 기존 문서를 완전히 바꾸고 싶다면 `index API` 사용을 권장한다.
+
+```
+{
+    "doc": {
+        이 부분에 업데이트할 문서 부분을 작성
+    }
+}
+```
+
+## Trouble shooting
+
+### ES 5.x 버전대를 쓸 때 type 값에 주의
+* ES 5.x 버전에서 _type 값을 `_doc` 과 같이 언더바로 시작하는 값을 줄 경우 document insert 가 안되는 문제가 있음
+* https://stackoverflow.com/questions/48110409/doc-mapping-type-name-not-accepted-in-elasticsearch-5-6
