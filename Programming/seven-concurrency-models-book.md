@@ -61,6 +61,22 @@
     - 자바에서 사용하는 동시성의 가장 기본 단위, 하나의 논리적 흐름
     - 공유 메모리를 이용해서 다른 스레드와 의사소통함
 
-```java
+* 스레드 생성 기본 예제
+```kotlin
+fun main(args: Array<String>) {
+    val myThread = Thread{
+        println("${Thread.currentThread().name} - hello from new thread")
+    }
 
+    myThread.start()
+    Thread.yield()
+    println("${Thread.currentThread().name} - hello from main")
+    myThread.join()
+}
 ```
+* `join` 메서드는 해당 스레드가 동작을 멈출때까지 기다린다.
+* `Thread.yield` 는 현재 실행 중인 스레드가 사용 중인 프로세서를 양보할 용의가 있음을 스케줄러에 알려주는 힌트이다.
+    * 때문에 위 코드는 실행 순서가 항상 보장되지 않는다.
+    * `Thread.yield` 를 주석처리 해도 실행 순서가 보장되지는 않는다.
+
+
