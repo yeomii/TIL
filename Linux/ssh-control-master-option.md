@@ -10,6 +10,7 @@
 * ask 로 설정할 경우 ssh 가 control connection 을 Listen 하게끔 하는데, SSH_ASKPASS 를 통한 컨펌을 요구한다.
 
 * auto 로 설정할 경우 마스터 커넥션을 사용하려고 시도하지만 마스터 커넥션이 없는 경우 새로 만드려고 시도한다
+* autoask 도 auto 와 비슷한 옵션이지만 ask 옵션과 비슷하게 컨펌을 요구한다
 
 ## Reference
 * https://linux.die.net/man/5/ssh_config
