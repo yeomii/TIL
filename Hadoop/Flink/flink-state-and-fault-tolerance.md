@@ -34,3 +34,73 @@
 
 
 ### Managed Keyed State 사용하기
+* KeyedStream 에서 사용 가능한 state primitives
+    * ValueState<T>
+    * ListState<T>
+    * ReducingState<T>
+    * AggregatingState<IN, OUT>
+    * FoldingState<T, ACC>
+    * MapState<UK, UV>
+* state 를 다루려면 `StateDescriptor` 를 생성해야 한다
+* 어떤 state 를 사용하느냐에 따라 사용해야 하는 `StateDescriptor` 도 달라진다
+* `State` 는 `RuntimeContext` 를 통해 접근 가능하기 떄문에 rich function 에서만 사용 가능하다
+
+* `ValueState` 를 사용해서 2개씩 평균을 구하는 예제
+
+```kotlin
+import org.apache.flink.api.common.functions.RichFlatMapFunction
+import org.apache.flink.api.common.state.ValueState
+import org.apache.flink.api.common.state.ValueStateDescriptor
+import org.apache.flink.api.common.typeinfo.TypeHint
+import org.apache.flink.api.common.typeinfo.TypeInformation
+import org.apache.flink.api.java.tuple.Tuple2
+import org.apache.flink.configuration.Configuration
+import org.apache.flink.util.Collector
+
+object StateTestJob {
+    class CountWindowAverage(): RichFlatMapFunction<Tuple2<Long, Long>, Tuple2<Long, Long>>() {
+        var sum: ValueState<Tuple2<Long, Long>>? = null
+
+        override fun open(parameters: Configuration?) {
+            super.open(parameters)
+            val descriptor = ValueStateDescriptor(
+                "average",
+                TypeInformation.of(object : TypeHint<Tuple2<Long, Long>>() {})
+            )
+            sum = runtimeContext.getState(descriptor)
+        }
+
+        override fun flatMap(value: Tuple2<Long, Long>?, out: Collector<Tuple2<Long, Long>>?) {
+            value?.let {
+                val newSum = Tuple2((sum?.value()?.f0?:0L) + 1, (sum?.value()?.f1?:0L) + value.f1)
+                sum?.update(newSum)
+
+                if (newSum.f0 >= 2L) {
+                    out?.collect(newSum)
+                    sum?.clear()
+                }
+            }
+        }
+
+    }
+}
+
+fun main() {
+    val env = KafkaConsumerTestJob.getStreamExecutionEnvironment()
+    env.parallelism = 1
+
+    env.fromElements(
+        Tuple2(1L, 3L), Tuple2(1L, 5L), Tuple2(1L, 7L), Tuple2(1L, 4L), Tuple2(1L, 2L), Tuple2(1L, 1L)
+    ).keyBy(0)
+        .flatMap(StateTestJob.CountWindowAverage())
+        .print()
+
+    env.execute("KoreJob")
+}
+
+// output
+// (2,8)
+//(2,11)
+// (2,3)
+```
+
