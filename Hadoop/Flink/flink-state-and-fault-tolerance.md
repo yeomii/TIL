@@ -104,3 +104,131 @@ fun main() {
 // (2,3)
 ```
 
+### State Time-To-Live (TTL)
+* 어떤 타입의 keyed state 에도 TTL 을 적용할 수 있다
+* 모든 collectio type 의 state 는 엔트리별 ttl 을 지원한다
+* TTL 을 적용하기 위해서는 `StateTtlConfig` 를 생성해서 descriptor 에 넘겨주면 된다
+
+* ttl config 사용 예
+
+```kotlin
+val ttlConfig = StateTtlConfig
+    .newBuilder(Time.seconds(1))
+    .setUpdateType(StateTtlConfig.UpdateType.OnCreateAndWrite)
+    .setStateVisibility(StateTtlConfig.StateVisibility.NeverReturnExpired)
+    .build()
+
+val descriptor = ValueStateDescriptor(
+    "average",
+    TypeInformation.of(object : TypeHint<Tuple2<Long, Long>>() {})
+)
+descriptor.enableTimeToLive(ttlConfig)
+```
+
+* state backend 에 저장할 때는 값과 함께 최근 수정 시간도 기록하기 때문에 state storage 사용량이 증가할 수 있다
+* 현재 processing time 을 참조하는 ttl 만 지원된다
+* ttl 없이 저장된 state 를 ttl 설정이 활성화 된 채로 복원하려고 하면 호환성 에러가 발생한다
+* ttl 설정은 체크포인트나 세이브포인트의 일부가 아니고, 현재 동작하는 잡을 플링크가 다루는 방식이라고 보는 것이 좋다
+* 현재 ttl 이 적용된 map state 는 serializer 가 null 값을 지원할 때에만 null 을 사용할 수 있다
+
+* 만료된 상태의 정리
+    * 기본적으로는 만료된 값은 명시적으로 읽힐 때에만 지워질 수 있다
+    * 즉 만료된 상태들이 읽히지 않은 상태로 계속 state 에 지워지지 않은채로 쌓일 수 있다는 것
+
+### Using Managed Operator State
+* `CheckpointedFunction` 
+    * 다른 재분배 스킴을 가진 non-keyed state 를 이 인터페이스로 접근할 수 있다
+    * 인터페이스는 아래 두 인터페이스를 구현해야 한다,
+
+```java
+void snapshotState(FunctionSnapshotContext context) throws Exception;
+void initializeState(FunctionInitializationContext context) throws Exception;
+```
+
+* 체크포인트가 수행되면 `snapshotState()` 가 호출된다
+* 반대로 사용자가 정의한 함수가 초기화 될 때 마다 `initializestate()` 가 호출된다
+
+* list 스타일의 managed operator state 가 지원된다
+* state 는 serializable 한 객체의 리스트여야 하며, 객체끼리는 서로 의존성이 없어야 한다 (rescaling 시 재분배 하기 좋기 때문에)
+* state 접근 방법에 따라 아래 재분배 스킴이 정의된다
+    * 각 operator 는 state element 의 리스트를 반환
+    * 전체 state 는 모든 리스트를 concat 한 것
+    * even-split 재분배
+        * 복구시 전체 리스트를 parallel operator 수 만큼 고르게 쪼개서 각 operator instance 에 sublist 하나씩 분배한다
+    * union 재분배
+        * 복구시 전체 리스트를 모든 operator instance 에 전달한다
+
+
+* CheckpointedFunction 을 사용하는 stateful SinkFunction 예제
+    * `State` 객체는 operator 의 스냅샷 상태를 저장하거나, 재시작시 복구한 state 스냅샷을 참조할 때 사용된다
+    * initializeState 에서 `context?.isRestored` 를 확인하여 failure 로부터 복구되었는지 확인한 후, 복구된 state 스냅샷으로부터 operator 의 상태를 복원한다
+```kotiln 
+class BufferingSink(val threshould: Int, val bufferedElements: MutableList<String>)
+    : CheckpointedFunction, SinkFunction<String> {
+    var checkpointedState: ListState<String>? = null
+
+    override fun invoke(value: String?, context: SinkFunction.Context<*>?) {
+        super.invoke(value, context)
+        value?.let {
+            bufferedElements.add(value)
+            if (bufferedElements.size >= threshould) {
+                println(Date().toString() + " - " + bufferedElements.joinToString(" "))
+                bufferedElements.clear()
+            }
+        }
+    }
+
+    override fun initializeState(context: FunctionInitializationContext?) {
+        val descriptor = ListStateDescriptor(
+            "buffered-elements",
+            TypeInformation.of(String::class.java)
+        )
+        checkpointedState = context?.operatorStateStore?.getListState(descriptor)
+        if (context?.isRestored == true)
+            checkpointedState?.get()?.forEach { x -> bufferedElements.add(x) }
+    }
+
+    override fun snapshotState(context: FunctionSnapshotContext?) {
+        checkpointedState?.clear()
+        checkpointedState?.addAll(bufferedElements)
+    }
+}
+```
+
+
+* Stateful Source Functions
+    * stateful 소스는 장애 복구시 `exactly-once` 시맨틱을 위해 checkpoint 용 lock 을 획득해서 처리할 필요가 있다
+```kotlin
+class CounterSource: ListCheckpointed<Long>, RichParallelSourceFunction<Long>()  {
+    private var offset: Long = 0L
+    private var isRunning: Boolean = true
+
+    override fun cancel() {
+        isRunning = false
+    }
+
+    override fun run(ctx: SourceFunction.SourceContext<Long>?) {
+        while (isRunning) {
+            ctx?.checkpointLock?.let {
+                synchronized(it) {
+                    ctx.collect(offset)
+                    offset += 1
+                }
+            }
+        }
+    }
+
+    override fun restoreState(state: MutableList<Long>?) {
+        offset = state?.max()?:0L
+    }
+
+    override fun snapshotState(checkpointId: Long, timestamp: Long): MutableList<Long> {
+        return mutableListOf(offset)
+    }
+}
+```
+
+
+* 어떤 operator 는 checkpoint 가 완료될 때 외부에 알려야 할 필요가 있을 수 있다
+    * 이를 위해 flink 에서는 `org.apache.flink.runtime.state.CheckpointListener` 를 제공한다
+
