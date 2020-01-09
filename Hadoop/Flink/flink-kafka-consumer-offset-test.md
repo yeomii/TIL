@@ -204,7 +204,7 @@ fun main() {
                 "test-topic",
                 false
             )
-        )
+        ).uid("test-topic-consumer")
 
     val asyncStream = AsyncDataStream.unorderedWait(
         instream,
