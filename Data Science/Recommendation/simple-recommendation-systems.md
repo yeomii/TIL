@@ -36,7 +36,7 @@ Udemy - [Recommender Systems and Deep Learning in Python](https://www.udemy.com/
     * P(A|B) 와 같음
 * 그러나 한 방향으로만 연관성이 높을 수 있음
     * 아기 침대를 산 사람은 시트를 같이 구매할 가능성이 높지만 반대는 아님
-* Lift
+* Lift (향상도)
     * Lift = p(A, B) / p(A)p(B) = p(A|B) / p(A) = p(B|A) / p(B)
     * `A & B` 가 독립적이면, p(A|B) = p(A) 이고, p(A|B) / p(A) = 1 이다.
     * B를 사는 것이 A 를 사는 확률을 높여준다면 Lift > 1 이다.
