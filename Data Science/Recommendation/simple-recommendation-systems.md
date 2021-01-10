@@ -44,7 +44,7 @@ Udemy - [Recommender Systems and Deep Learning in Python](https://www.udemy.com/
 ## Hacker News
 * 보통 다른사람이 좋아할 만한 것을 당신도 좋아할테지만, 뉴스같은 경우 3년전에 제일 인기있던 뉴스를 지금 보고싶어할 만한 사람은 거의 없을것이다.
 ### age 와 popularity 균형 맞추기
-* f(popularity) = g(age)
+* f(popularity) / g(age)
 ### Hacker News Formula
 * score = (ups - downs - 1)^0.8 / (age+2)^gravity * penalty
     * ups & downs - votes
