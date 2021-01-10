@@ -58,7 +58,7 @@ Udemy - [Recommender Systems and Deep Learning in Python](https://www.udemy.com/
 * 소수의 기사만이 많은 표를 얻고, 대부분은 적은 표를 얻는다.
 ### extra reading
 * http://www.righto.com/2013/11/how-hacker-news-ranking-really-works.html
-![](2021-01-10-08-02-42.png)
+![](2021-01-10-08-02-42.png){:height="50%" width="50%"}
 
 ## Reddit
 * hacker news 와 다른 점은 down vote 를 누구나 할 수 있다는 것
@@ -85,7 +85,7 @@ Udemy - [Recommender Systems and Deep Learning in Python](https://www.udemy.com/
     * 평균 평점이 5인데 평가가 하나뿐인 아이템과, 평균 평점이 4인데 평가가 많은 아이템은 첫 번째가 노출되는데, 이게 믿을만한 결과일까?
 ### Confidence
 * 통계학의 신뢰구간
-    ![](2021-01-10-12-40-06.png)
+    ![](2021-01-10-12-40-06.png){:height="50%" width="50%"}
 * 추정에 얼마나 신뢰도가 있는지 한계선을 확인할 수 있음
 * 전형적인 ranking, rating 방법은 신뢰구간 하한선에 비관적이다
 * 하한선으로 정렬해야 하는 이유?
@@ -93,28 +93,28 @@ Udemy - [Recommender Systems and Deep Learning in Python](https://www.udemy.com/
     * 아이템 1은 3개의 평가를, 아이템 2는 100개의 평가를 받았다.
     * 아이템 2의 샘플 크기가 더 크기 떄문에 4점이라는 평가에 높은 신뢰도를 가질 수 있다.
     * 아이템 2의 신뢰구간이 더 좁고 신뢰구간의 상, 하한이 더 4점에 가깝다
-        ![](2021-01-10-12-45-33.png)
+        ![](2021-01-10-12-45-33.png){:height="50%" width="50%"}
 * 신뢰구간
     * 랜덤 변수 X 가 주어질 때, 샘플의 평균의 분포를 계산할 수 있다.
     * 샘플이 많으면 많을수록 분포 구간이 좁아진다.
-        ![](2021-01-10-12-50-00.png)
+        ![](2021-01-10-12-50-00.png){:height="30%" width="30%"}
     * 신뢰구간을 구하는 방법
-        ![](2021-01-10-12-56-22.png)
+        ![](2021-01-10-12-56-22.png){:height="50%" width="50%"}
         * 여기서 s 는 데이터의 표준편차
 * 만약 데이터가 정규 분포를 따르지 않는다면?
     * central limit theorem 에 의해 랜덤 변수의 합은 정규분포로 수렴하게 되기 때문에 문제 없다.
     * X_bar = (1/N) * (X_1 + X_2 + X_3 + ... X_N)
 * 베르누이 신뢰구간 추정
     * 0 또는 1 의 결과를 가지는 변수일 경우 (up&down vote)
-        ![](2021-01-10-13-02-31.png)
+        ![](2021-01-10-13-02-31.png){:height="30%" width="30%"}
 * Wilson Interval
     * 더 나은 신뢰구간 추정법
-        ![](2021-01-10-13-03-41.png)
+        ![](2021-01-10-13-03-41.png){:height="30%" width="30%"}
     * z = 1.96 (95% 신뢰구간에 대한 상수)
     * reddit 이 wilson 구간을 이용하여 comment 를 정렬한다
 ### 5-star ratings 확장하기
 * 다음과 같이 여러 방법으로 해석 가능
-    ![](2021-01-10-13-06-12.png)
+    ![](2021-01-10-13-06-12.png){:height="50%" width="50%"}
 * 하한선으로 정렬하는 것은 너무 비관적이지 않나?
     * 1개의 평가만 받은 좋은 상품이 매우 불리한 위치
     * 그러나 평가를 한 사람의 수를 나타내기 때문에 좋을 수 있다.
@@ -122,7 +122,7 @@ Udemy - [Recommender Systems and Deep Learning in Python](https://www.udemy.com/
 ### average rating 의 또다른 문제
 * 샘플 데이터가 매우 작거나 없다면?
 * Smoothing (or dampening) 방법으로 기본값을 정해줄 수 있다.
-    ![](2021-01-10-13-15-03.png)
+    ![](2021-01-10-13-15-03.png){:height="30%" width="30%"}
 * 위 식으로 글로벌 평균을 정할 수 있다 (3과 같은 중간값으로)
     * 문제는 대부분의 사람들이 3점을 안좋게 본다는 것
     * 3점을 가진 모든 상품들이 안좋은 평가를 가진 것 처럼 보일 수 있다.
